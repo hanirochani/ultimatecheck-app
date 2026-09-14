@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Management Dashboard — UltimateCheck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brandmark" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg"><rect width="26" height="26" rx="6" fill="#0B5D3F"/><text x="13" y="19" font-family="Big Shoulders Display,sans-serif" font-size="16" font-weight="800" fill="#C7DB1F" text-anchor="middle">U</text></svg>
+      <div class="name">Ultimate<span>Check</span></div>
+    </a>
+    <div class="right" id="topbarRight">
+      <span class="role-chip">Management</span>
+      <a class="logout" href="index.html">Keluar</a>
+    </div>
+  </header>
+
+  <div id="gate" class="gate-wrap">
+    <div class="gate-card">
+      <div class="icon">M</div>
+      <h2>Akses Manajemen</h2>
+      <p>Dasbor ini hanya untuk manajemen PT. Aneka Petroindo Raya. Personil site/SPBU tidak memiliki akses.</p>
+      <input type="password" id="gatePass" placeholder="Kata sandi manajemen">
+      <div class="gate-error" id="gateError"></div>
+      <button class="btn btn-primary btn-block" id="gateBtn">Masuk</button>
+      <div class="gate-note">Prototipe: gerbang kata sandi tunggal untuk simulasi. Versi produksi akan menggunakan akun login individual per manajer.</div>
+    </div>
+  </div>
+
+  <div class="wrap" id="dashHost" style="display:none;"></div>
+
+<script src="data.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
