@@ -1,4 +1,29 @@
 (() => {
+  const gate = document.getElementById("gate");
+  const shopperHost = document.getElementById("shopperHost");
+  const gateBtn = document.getElementById("gateBtn");
+  const gatePass = document.getElementById("gatePass");
+  const gateError = document.getElementById("gateError");
+
+  function tryEnter() {
+    if (UC.tryShopperLogin(gatePass.value)) {
+      gate.style.display = "none";
+      shopperHost.style.display = "block";
+    } else {
+      gateError.textContent = "Kata sandi salah. Coba lagi.";
+    }
+  }
+  gateBtn.addEventListener("click", tryEnter);
+  gatePass.addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
+
+  const logoutLink = document.getElementById("logoutLink");
+  if (logoutLink) logoutLink.addEventListener("click", () => UC.shopperLogout());
+
+  if (UC.isShopperUnlocked()) {
+    gate.style.display = "none";
+    shopperHost.style.display = "block";
+  }
+
   const host = document.getElementById("checklistHost");
   const evidenceStore = {}; // key -> dataURL
   let groupIndex = 0;
