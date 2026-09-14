@@ -9,6 +9,10 @@ const UC = (() => {
   const STORE_KEY = "uc_visits_v1";
   const MGMT_PASS_KEY = "uc_mgmt_ok";
   const MGMT_PASSWORD = "APRmanajemen2026"; // prototype-only shared password gate
+  const SHOPPER_PASS_KEY = "uc_shopper_ok";
+  const SHOPPER_PASSWORD = "APRshopper2026"; // prototype-only shared password gate
+  const QC_PASS_KEY = "uc_qc_ok";
+  const QC_PASSWORD = "APRqc2026"; // prototype-only shared password gate
 
   // Checklist definitions per SOW category, with weight + zero-tolerance flags.
   const CHECKLIST = {
@@ -266,6 +270,34 @@ const UC = (() => {
     sessionStorage.removeItem(MGMT_PASS_KEY);
   }
 
+  function isShopperUnlocked() {
+    return sessionStorage.getItem(SHOPPER_PASS_KEY) === "1";
+  }
+  function tryShopperLogin(pass) {
+    if (pass === SHOPPER_PASSWORD) {
+      sessionStorage.setItem(SHOPPER_PASS_KEY, "1");
+      return true;
+    }
+    return false;
+  }
+  function shopperLogout() {
+    sessionStorage.removeItem(SHOPPER_PASS_KEY);
+  }
+
+  function isQcUnlocked() {
+    return sessionStorage.getItem(QC_PASS_KEY) === "1";
+  }
+  function tryQcLogin(pass) {
+    if (pass === QC_PASSWORD) {
+      sessionStorage.setItem(QC_PASS_KEY, "1");
+      return true;
+    }
+    return false;
+  }
+  function qcLogout() {
+    sessionStorage.removeItem(QC_PASS_KEY);
+  }
+
   function toast(msg) {
     let el = document.querySelector(".toast");
     if (!el) {
@@ -281,10 +313,12 @@ const UC = (() => {
   }
 
   return {
-    CHECKLIST, EVIDENCE_SLOTS, MGMT_PASSWORD,
+    CHECKLIST, EVIDENCE_SLOTS, MGMT_PASSWORD, SHOPPER_PASSWORD, QC_PASSWORD,
     uid, scoreVisit, tierLabel,
     getVisits, saveVisits, addVisit, updateVisit, getVisit, resetDemoData,
     isMgmtUnlocked, tryMgmtLogin, mgmtLogout,
+    isShopperUnlocked, tryShopperLogin, shopperLogout,
+    isQcUnlocked, tryQcLogin, qcLogout,
     toast
   };
 })();
