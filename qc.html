@@ -17,25 +17,39 @@
     </a>
     <div class="right">
       <span class="role-chip">QC Reviewer</span>
-      <a class="logout" href="index.html">Keluar</a>
+      <a class="logout" href="index.html" id="logoutLink">Keluar</a>
     </div>
   </header>
 
-  <div class="wrap" id="listView">
-    <h1 class="page-title">Antrean Review QC</h1>
-    <p class="page-sub">Tinjau kunjungan yang masuk dari shopper, verifikasi bukti foto/video terhadap checklist, lalu setujui untuk difinalisasi ke manajemen atau kembalikan ke shopper.</p>
-
-    <div class="card" style="padding:0; overflow:hidden;">
-      <table class="list" id="visitTable">
-        <thead>
-          <tr><th>Site</th><th>Shopper</th><th>Tanggal</th><th>Skor</th><th>Status</th><th></th></tr>
-        </thead>
-        <tbody id="visitTbody"></tbody>
-      </table>
+  <div id="gate" class="gate-wrap">
+    <div class="gate-card">
+      <div class="icon">Q</div>
+      <h2>Akses QC Reviewer</h2>
+      <p>Antrean review ini hanya untuk tim QC PT. Aneka Petroindo Raya. Personil site/SPBU tidak memiliki akses.</p>
+      <input type="password" id="gatePass" placeholder="Kata sandi QC">
+      <div class="gate-error" id="gateError"></div>
+      <button class="btn btn-primary btn-block" id="gateBtn">Masuk</button>
+      <div class="gate-note">Prototipe: gerbang kata sandi tunggal untuk simulasi. Versi produksi akan menggunakan akun login individual per reviewer.</div>
     </div>
   </div>
 
-  <div class="wrap" id="detailView" style="display:none;"></div>
+  <div id="qcHost" style="display:none;">
+    <div class="wrap" id="listView">
+      <h1 class="page-title">Antrean Review QC</h1>
+      <p class="page-sub">Tinjau kunjungan yang masuk dari shopper, verifikasi bukti foto/video terhadap checklist, lalu setujui untuk difinalisasi ke manajemen atau kembalikan ke shopper.</p>
+
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table class="list" id="visitTable">
+          <thead>
+            <tr><th>Site</th><th>Shopper</th><th>Tanggal</th><th>Skor</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="visitTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="wrap" id="detailView" style="display:none;"></div>
+  </div>
 
 <script src="data.js"></script>
 <script src="qc.js"></script>
