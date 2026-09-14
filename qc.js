@@ -71,7 +71,8 @@
       </div>`;
   }
 
-  function checklistTable(catKey, def, answers) {
+  function checklistTable(catKey, def, answers, itemEvidence) {
+    itemEvidence = itemEvidence || {};
     const rows = def.items.map((it, i) => {
       const v = answers[it.key];
       let resultHtml;
@@ -81,6 +82,11 @@
         resultHtml = v === "yes" ? '<span style="color:var(--good); font-weight:700;">Ya</span>'
           : v === "no" ? '<span style="color:var(--bad); font-weight:700;">Tidak</span>'
           : '<span style="color:var(--ink-faint);">N/A</span>';
+        if (v === "no" && it.visual) {
+          resultHtml += itemEvidence[it.key]
+            ? `<br><img src="${itemEvidence[it.key]}" alt="Bukti foto" title="Bukti foto dari shopper" style="width:56px;height:42px;object-fit:cover;border-radius:5px;margin-top:4px;border:1px solid var(--line);">`
+            : `<br><span style="font-family:var(--font-mono); font-size:9.5px; color:var(--hazard); text-transform:uppercase;">tanpa foto</span>`;
+        }
       }
       return `<tr><td style="width:22px; color:var(--ink-faint); font-family:var(--font-mono);">${i + 1}</td><td>${it.label}${it.critical ? ' <span style="color:var(--bad); font-size:10px; font-family:var(--font-mono); text-transform:uppercase;">zero-tolerance</span>' : ""}</td><td style="width:70px; text-align:right;">${resultHtml}</td></tr>`;
     }).join("");
@@ -109,7 +115,7 @@
       </div>`).join("");
 
     const checklistTables = ["bss", "cleanliness", "marketing", "grooming", "cx"]
-      .map(k => checklistTable(k, UC.CHECKLIST[k], v.answers)).join("");
+      .map(k => checklistTable(k, UC.CHECKLIST[k], v.answers, v.itemEvidence)).join("");
 
     detailView.innerHTML = `
       <button class="btn btn-ghost btn-sm" id="backBtn" style="margin-bottom:16px;">← Kembali ke Antrean</button>
