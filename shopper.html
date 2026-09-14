@@ -116,6 +116,104 @@
     <div class="right">
       <span class="offline-badge" id="offlineBadge"><span class="dot"></span> Tersimpan otomatis di perangkat</span>
       <span class="role-chip">Shopper</span>
+      <a class="logout" href="index.html" id="logoutLink">Keluar</a>
+    </div>
+  </header>
+
+  <div id="gate" class="gate-wrap">
+    <div class="gate-card">
+      <div class="icon">S</div>
+      <h2>Akses Shopper</h2>
+      <p>Form kunjungan ini hanya untuk mystery shopper yang ditugaskan PT. Aneka Petroindo Raya. Personil site/SPBU tidak memiliki akses.</p>
+      <input type="password" id="gatePass" placeholder="Kata sandi shopper">
+      <div class="gate-error" id="gateError"></div>
+      <button class="btn btn-primary btn-block" id="gateBtn">Masuk</button>
+      <div class="gate-note">Prototipe: gerbang kata sandi tunggal untuk simulasi. Versi produksi akan menggunakan akun login individual per shopper.</div>
+    </div>
+  </div>
+
+  <div class="wrap narrow" id="shopperHost" style="display:none;">
+    <h1 class="page-title">Form Kunjungan SPBU</h1>
+    <p class="page-sub">Isi setiap bagian sesuai urutan kunjungan. Form dapat diisi offline — data tersimpan otomatis di perangkat dan akan tersinkron saat kembali online.</p>
+
+    <div class="card">
+      <div class="field">
+        <label class="q">ID Shopper</label>
+        <select id="f_shopperId">
+          <option value="MS-014">MS-014</option>
+          <option value="MS-007">MS-007</option>
+          <option value="MS-021">MS-021</option>
+          <option value="MS-009">MS-009</option>
+          <option value="MS-003">MS-003</option>
+        </select>
+        <span class="hint">Placeholder ID — akan digantikan dengan nama lengkap shopper pada versi produksi.</span>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label class="q">Kode & Lokasi Site</label>
+        <select id="f_site">
+          <option value="SPBU 34.16.05|Kebon Jeruk, Jakarta Barat|Jabodetabek">SPBU 34.16.05 — Kebon Jeruk, Jakarta Barat</option>
+          <option value="SPBU 34.16.12|Cikarang|Jabodetabek">SPBU 34.16.12 — Cikarang</option>
+          <option value="SPBU 34.15.08|Karawang|Jabodetabek">SPBU 34.15.08 — Karawang</option>
+          <option value="SPBU 34.17.04|Soreang, Bandung|Bandung">SPBU 34.17.04 — Soreang, Bandung</option>
+          <option value="SPBU 34.16.21|Bogor|Jabodetabek">SPBU 34.16.21 — Bogor</option>
+        </select>
+        <span class="hint">Site ditugaskan sebelumnya oleh koordinator (assigned in advance) — bukan dipilih bebas oleh shopper.</span>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label class="q">Mode Kunjungan</label>
+        <div class="seg">
+          <input type="radio" name="f_mode" id="mode_car" value="Mobil" checked><label for="mode_car">Mobil</label>
+          <input type="radio" name="f_mode" id="mode_bike" value="Motor"><label for="mode_bike">Motor</label>
+        </div>
+      </div>
+    </div>
+
+    <form id="visitForm">
+      <div id="checklistHost" style="margin-top:16px;"></div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="field">
+          <label class="q">Catatan Observasi</label>
+          <textarea id="f_observation" placeholder="Catatan naratif tambahan tentang kunjungan (opsional, mendukung item checklist)…"></textarea>
+        </div>
+      </div>
+
+      <div id="critAlert"></div>
+
+      <div class="form-footer">
+        <span class="hint" id="draftStatus" style="color:var(--ink-soft); font-size:12.5px;">Draf belum disimpan</span>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn btn-ghost" id="saveDraftBtn">Simpan Draf</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Kirim untuk Review QC</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+<script src="data.js"></script>
+<script src="shopper.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Form Kunjungan — UltimateCheck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brandmark" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg"><rect width="26" height="26" rx="6" fill="#0B5D3F"/><text x="13" y="19" font-family="Big Shoulders Display,sans-serif" font-size="16" font-weight="800" fill="#C7DB1F" text-anchor="middle">U</text></svg>
+      <div class="name">Ultimate<span>Check</span></div>
+    </a>
+    <div class="right">
+      <span class="offline-badge" id="offlineBadge"><span class="dot"></span> Tersimpan otomatis di perangkat</span>
+      <span class="role-chip">Shopper</span>
       <a class="logout" href="index.html">Keluar</a>
     </div>
   </header>
