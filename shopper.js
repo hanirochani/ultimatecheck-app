@@ -26,6 +26,7 @@
 
   const host = document.getElementById("checklistHost");
   const evidenceStore = {}; // key -> dataURL
+  const itemEvidenceStore = {}; // item key -> dataURL, for visual items answered "Tidak"
   let groupIndex = 0;
 
   function renderGroup(catKey, def) {
@@ -71,6 +72,12 @@
     const wrap = document.createElement("div");
     wrap.className = "field";
     const critTag = it.critical ? ' <span style="color:var(--bad); font-family:var(--font-mono); font-size:10px; text-transform:uppercase;">· zero-tolerance</span>' : "";
+    const evidenceMarkup = it.visual ? `
+      <div class="item-evidence" id="itemEvi_${it.key}" style="display:none;">
+        <label class="item-evidence-box" for="itemEviInput_${it.key}"><span class="plus">+</span></label>
+        <input type="file" accept="image/*" capture="environment" id="itemEviInput_${it.key}" data-key="${it.key}">
+        <span class="item-evidence-hint"><span class="item-evidence-req">Wajib foto bukti</span>Lampirkan foto kondisi yang dimaksud karena jawaban "Tidak" pada kondisi fisik yang terlihat.</span>
+      </div>` : "";
     wrap.innerHTML = `
       <label class="q">${it.label}${critTag}</label>
       <div class="seg">
@@ -80,8 +87,28 @@
         <input type="radio" name="${it.key}" id="${it.key}_na" value="na">
         <label for="${it.key}_na">N/A</label>
       </div>
+      ${evidenceMarkup}
     `;
-    wrap.querySelectorAll("input").forEach(r => r.addEventListener("change", onAnswerChange));
+    wrap.querySelectorAll("input[type=radio]").forEach(r => r.addEventListener("change", onAnswerChange));
+
+    if (it.visual) {
+      const eviInput = wrap.querySelector(`#itemEviInput_${it.key}`);
+      const eviWrap = wrap.querySelector(`#itemEvi_${it.key}`);
+      const eviBox = wrap.querySelector(`.item-evidence-box`);
+      eviInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          itemEvidenceStore[it.key] = reader.result;
+          eviBox.innerHTML = `<img src="${reader.result}" alt="">`;
+          eviWrap.classList.add("filled");
+          markDirty();
+          UC.toast("Foto bukti tersimpan");
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     return wrap;
   }
 
@@ -145,6 +172,19 @@
   function onAnswerChange() {
     markDirty();
     checkCritical();
+    refreshItemEvidenceVisibility();
+  }
+
+  function refreshItemEvidenceVisibility() {
+    document.querySelectorAll(".item-evidence").forEach(eviWrap => {
+      const key = eviWrap.id.replace("itemEvi_", "");
+      const checked = document.querySelector(`input[name="${key}"]:checked`);
+      if (checked && checked.value === "no") {
+        eviWrap.style.display = "flex";
+      } else {
+        eviWrap.style.display = "none";
+      }
+    });
   }
 
   function checkCritical() {
@@ -204,9 +244,36 @@
     UC.toast("Draf disimpan di perangkat");
   });
 
+  function findMissingVisualEvidence(answers) {
+    const missing = [];
+    Object.values(UC.CHECKLIST).forEach(def => {
+      if (def.kind !== "yn") return;
+      def.items.forEach(it => {
+        if (it.visual && answers[it.key] === "no" && !itemEvidenceStore[it.key]) {
+          missing.push(it);
+        }
+      });
+    });
+    return missing;
+  }
+
   document.getElementById("visitForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const answers = collectAnswers();
+
+    const missing = findMissingVisualEvidence(answers);
+    if (missing.length) {
+      refreshItemEvidenceVisibility();
+      const firstField = document.getElementById(`itemEvi_${missing[0].key}`);
+      if (firstField) {
+        const detailsEl = firstField.closest("details.fg");
+        if (detailsEl) detailsEl.open = true;
+        firstField.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      UC.toast(`Lampirkan foto bukti untuk ${missing.length} item kondisi fisik yang dijawab "Tidak"`);
+      return;
+    }
+
     const score = UC.scoreVisit(answers);
     const [site, location, cluster] = document.getElementById("f_site").value.split("|");
     const shopperId = document.getElementById("f_shopperId").value;
@@ -215,6 +282,16 @@
 
     const evidence = {};
     UC.EVIDENCE_SLOTS.forEach(s => { evidence[s.key] = evidenceStore[s.key] || s.file; });
+
+    const itemEvidence = {};
+    Object.values(UC.CHECKLIST).forEach(def => {
+      if (def.kind !== "yn") return;
+      def.items.forEach(it => {
+        if (it.visual && answers[it.key] === "no" && itemEvidenceStore[it.key]) {
+          itemEvidence[it.key] = itemEvidenceStore[it.key];
+        }
+      });
+    });
 
     const visit = {
       id: UC.uid("VS-" + now.getFullYear()),
@@ -226,6 +303,7 @@
       emailStatus: null,
       answers,
       evidence,
+      itemEvidence,
       notes: { observation: document.getElementById("f_observation").value, qc: "" },
       timing: { arrive: "—", startInteraction: "—", endInteraction: "—", depart: "—" },
       score
