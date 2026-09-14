@@ -1,4 +1,23 @@
 (() => {
+  const gate = document.getElementById("gate");
+  const qcHost = document.getElementById("qcHost");
+  const gateBtn = document.getElementById("gateBtn");
+  const gatePass = document.getElementById("gatePass");
+  const gateError = document.getElementById("gateError");
+
+  function tryEnter() {
+    if (UC.tryQcLogin(gatePass.value)) {
+      enterQc();
+    } else {
+      gateError.textContent = "Kata sandi salah. Coba lagi.";
+    }
+  }
+  gateBtn.addEventListener("click", tryEnter);
+  gatePass.addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
+
+  const logoutLink = document.getElementById("logoutLink");
+  if (logoutLink) logoutLink.addEventListener("click", () => UC.qcLogout());
+
   const listView = document.getElementById("listView");
   const detailView = document.getElementById("detailView");
   const tbody = document.getElementById("visitTbody");
@@ -168,6 +187,12 @@
     }
   }
 
-  renderList();
-  if (openId) showDetail(openId);
+  function enterQc() {
+    gate.style.display = "none";
+    qcHost.style.display = "block";
+    renderList();
+    if (openId) showDetail(openId);
+  }
+
+  if (UC.isQcUnlocked()) enterQc();
 })();
