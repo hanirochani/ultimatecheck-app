@@ -211,9 +211,8 @@
 
   function buildChecklist() {
     const clHost = document.getElementById("checklistHost");
-    let groupIndex = 0;
-    Object.entries(UC.CHECKLIST).forEach(([catKey, def]) => {
-      groupIndex++;
+    Object.entries(UC.CHECKLIST).forEach(([catKey, def], i) => {
+      const groupIndex = i + 1;
       const details = document.createElement("details");
       details.className = "fg";
       details.open = groupIndex <= 2;
@@ -222,7 +221,7 @@
       const head = document.createElement("summary");
       head.className = "fg-head";
       head.innerHTML = `
-        <div class="t"><span class="num">${groupIndex}</span><h3>${def.title}</h3></div>
+        <div class="t"><h3>${def.title}</h3></div>
         <span class="w">${def.kind === "recording" ? "wajib" : def.weight + "% bobot"}</span>
       `;
       details.appendChild(head);
@@ -231,13 +230,13 @@
       body.className = "fg-body";
 
       if (def.kind === "recording") {
-        def.items.forEach(it => body.appendChild(renderYesNo(it, true)));
+        def.items.forEach(it => body.appendChild(renderYesNo(it, true, catKey)));
         const note = document.createElement("div");
         note.className = "hint";
         note.textContent = "Simulasi rekaman video/audio sebagai bagian latihan BSS.";
         body.appendChild(note);
       } else if (def.kind === "yn") {
-        def.items.forEach(it => body.appendChild(renderYesNo(it, false)));
+        def.items.forEach(it => body.appendChild(renderYesNo(it, false, catKey)));
       } else if (def.kind === "rating") {
         def.items.forEach(it => body.appendChild(renderRating(it)));
       }
@@ -247,17 +246,21 @@
     });
   }
 
-  function renderYesNo(it, isRecording) {
+  function renderYesNo(it, isRecording, catKey) {
     const wrap = document.createElement("div");
     wrap.className = "field";
     const ref = UC.refFor(it.key);
     const refTag = ref ? `<span class="ref-tag">${ref}</span>` : "";
     const critTag = it.critical ? ' <span style="color:var(--bad); font-family:var(--font-mono); font-size:10px; text-transform:uppercase;">· zero-tolerance</span>' : "";
-    const evidenceMarkup = it.visual ? `
+    // BSS observation items (category 1) are captured as video since they evaluate a live
+    // service interaction; every other visual category keeps photo evidence (as in the live MMP form).
+    const isVideo = catKey === "bss";
+    const needsEvidence = it.visual || isVideo;
+    const evidenceMarkup = needsEvidence ? `
       <div class="item-evidence" id="itemEvi_${it.key}" style="display:none;">
         <label class="item-evidence-box" for="itemEviInput_${it.key}"><span class="plus">+</span></label>
-        <input type="file" accept="image/*" capture="environment" id="itemEviInput_${it.key}" data-key="${it.key}">
-        <span class="item-evidence-hint"><span class="item-evidence-req">Wajib foto bukti</span>Lampirkan foto kondisi yang dimaksud karena jawaban "Tidak".</span>
+        <input type="file" accept="${isVideo ? "video/*" : "image/*"}" capture="environment" id="itemEviInput_${it.key}" data-key="${it.key}">
+        <span class="item-evidence-hint"><span class="item-evidence-req">Wajib ${isVideo ? "video" : "foto"} bukti</span>Lampirkan ${isVideo ? "video" : "foto"} kondisi yang dimaksud karena jawaban "Tidak".</span>
       </div>` : "";
     wrap.innerHTML = `
       <label class="q">${refTag}${it.label}${critTag}</label>
@@ -272,7 +275,7 @@
     `;
     wrap.querySelectorAll("input[type=radio]").forEach(r => r.addEventListener("change", () => { checkCritical(); refreshItemEvidenceVisibility(); }));
 
-    if (it.visual) {
+    if (needsEvidence) {
       const eviInput = wrap.querySelector(`#itemEviInput_${it.key}`);
       const eviWrap = wrap.querySelector(`#itemEvi_${it.key}`);
       const eviBox = wrap.querySelector(`.item-evidence-box`);
@@ -283,9 +286,11 @@
         reader.onload = async () => {
           const geo = await UC.captureGeo();
           itemEvidenceStore[it.key] = reader.result;
-          eviBox.innerHTML = `<img src="${reader.result}" alt="">`;
+          eviBox.innerHTML = isVideo
+            ? `<video src="${reader.result}" controls muted playsinline></video>`
+            : `<img src="${reader.result}" alt="">`;
           eviWrap.classList.add("filled");
-          UC.toast("Foto bukti tersimpan" + (geo ? ` (GPS ${fmtGeo(geo)})` : ""));
+          UC.toast((isVideo ? "Video bukti tersimpan" : "Foto bukti tersimpan") + (geo ? ` (GPS ${fmtGeo(geo)})` : ""));
         };
         reader.readAsDataURL(file);
       });
@@ -362,10 +367,11 @@
 
   function findMissingVisualEvidence(answers) {
     const missing = [];
-    Object.values(UC.CHECKLIST).forEach(def => {
+    Object.entries(UC.CHECKLIST).forEach(([catKey, def]) => {
       if (def.kind !== "yn") return;
       def.items.forEach(it => {
-        if (it.visual && answers[it.key] === "no" && !itemEvidenceStore[it.key]) missing.push(it);
+        const needsEvidence = it.visual || catKey === "bss";
+        if (needsEvidence && answers[it.key] === "no" && !itemEvidenceStore[it.key]) missing.push(it);
       });
     });
     return missing;

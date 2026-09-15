@@ -69,6 +69,7 @@
   function renderKeyEditor(testId) {
     const existing = UC.getTrainingKey(testId);
     const answers = existing ? Object.assign({}, existing.answers) : {};
+    const mediaByItem = existing && existing.media ? Object.assign({}, existing.media) : {};
 
     host.innerHTML = `
       <button class="btn btn-ghost btn-sm" id="backBtn" style="margin-bottom:16px;">← Kembali</button>
@@ -83,17 +84,16 @@
     document.getElementById("backBtn").addEventListener("click", renderHome);
 
     const clHost = document.getElementById("keyChecklistHost");
-    let groupIndex = 0;
-    ["bss", "cleanliness", "marketing", "grooming", "cx"].forEach(catKey => {
+    ["bss", "cleanliness", "marketing", "grooming", "cx"].forEach((catKey, i) => {
       const def = UC.CHECKLIST[catKey];
-      groupIndex++;
+      const groupIndex = i + 1;
       const details = document.createElement("details");
       details.className = "fg";
       details.open = groupIndex <= 2;
 
       const head = document.createElement("summary");
       head.className = "fg-head";
-      head.innerHTML = `<div class="t"><span class="num">${groupIndex}</span><h3>${def.title}</h3></div><span class="w">${def.weight}% bobot</span>`;
+      head.innerHTML = `<div class="t"><h3>${def.title}</h3></div><span class="w">${def.weight}% bobot</span>`;
       details.appendChild(head);
 
       const body = document.createElement("div");
@@ -125,6 +125,10 @@
           wrap.appendChild(rating);
         } else {
           const cur = answers[it.key];
+          // QC can optionally attach reference media matching what the shopper is asked to submit:
+          // video for BSS (live interaction), photo for other visual categories.
+          const isVideo = catKey === "bss";
+          const needsMedia = isVideo || it.visual;
           wrap.innerHTML = `
             <label class="q">${refTag}${it.label}</label>
             <div class="seg">
@@ -135,9 +139,47 @@
               <input type="radio" name="key_${it.key}" id="key_${it.key}_na" value="na" ${cur === "na" || !cur ? "checked" : ""}>
               <label for="key_${it.key}_na">N/A</label>
             </div>
+            ${needsMedia ? `
+            <div class="key-media" style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+              <label class="item-evidence-box" for="keyMedia_${it.key}" style="border-color:var(--line); border-style:dashed;">
+                <span class="plus" style="color:var(--ink-faint);">+</span>
+              </label>
+              <input type="file" accept="${isVideo ? "video/*" : "image/*"}" id="keyMedia_${it.key}" data-key="${it.key}" style="display:none;">
+              <span class="hint">Referensi ${isVideo ? "video" : "foto"} jawaban benar (opsional)</span>
+            </div>` : ""}
           `;
         }
         body.appendChild(wrap);
+
+        if (def.kind !== "rating") {
+          const isVideo = catKey === "bss";
+          const needsMedia = isVideo || it.visual;
+          if (needsMedia) {
+            const mediaInput = wrap.querySelector(`#keyMedia_${it.key}`);
+            const mediaBox = wrap.querySelector(`.item-evidence-box`);
+            const existingMedia = mediaByItem[it.key];
+            if (existingMedia) {
+              mediaBox.innerHTML = isVideo
+                ? `<video src="${existingMedia}" controls muted playsinline></video>`
+                : `<img src="${existingMedia}" alt="">`;
+              mediaBox.style.borderStyle = "solid";
+            }
+            mediaInput.addEventListener("change", (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                mediaByItem[it.key] = reader.result;
+                mediaBox.innerHTML = isVideo
+                  ? `<video src="${reader.result}" controls muted playsinline></video>`
+                  : `<img src="${reader.result}" alt="">`;
+                mediaBox.style.borderStyle = "solid";
+                UC.toast("Referensi " + (isVideo ? "video" : "foto") + " tersimpan");
+              };
+              reader.readAsDataURL(file);
+            });
+          }
+        }
       });
 
       details.appendChild(body);
@@ -158,7 +200,7 @@
           }
         });
       });
-      UC.saveTrainingKey(testId, newAnswers, session.name);
+      UC.saveTrainingKey(testId, newAnswers, session.name, mediaByItem);
       UC.toast("Key jawaban tersimpan — sesi yang sudah dikirim akan dinilai ulang");
       renderHome();
     });

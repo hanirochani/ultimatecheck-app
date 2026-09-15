@@ -338,9 +338,18 @@ const UC = (() => {
   function getTrainingKey(testId) {
     return getTrainingKeys()[testId] || null;
   }
-  function saveTrainingKey(testId, answers, savedByName) {
+  // mediaByItem (optional): { [itemKey]: dataURL } — QC-authored reference photo/video shown
+  // alongside the answer key item (video for BSS, photo for other visual items). Reference-only,
+  // never affects scoring (scoreAgainstKey below only ever compares `answers`).
+  function saveTrainingKey(testId, answers, savedByName, mediaByItem) {
     const keys = getTrainingKeys();
-    keys[testId] = { answers, savedBy: savedByName, savedAt: new Date().toISOString() };
+    const existing = keys[testId];
+    keys[testId] = {
+      answers,
+      media: mediaByItem || (existing && existing.media) || {},
+      savedBy: savedByName,
+      savedAt: new Date().toISOString()
+    };
     localStorage.setItem(TRAINING_KEYS_KEY, JSON.stringify(keys));
     // Rescore any sessions already submitted for this test now that a key exists/changed.
     const sessions = getTrainingSessions();
