@@ -122,6 +122,13 @@
         <div class="id-cell"><div class="k">Status</div><div class="v">${statusPill(v)}</div></div>
       </div>
 
+      <div class="id-card">
+        <div class="id-cell"><div class="k">Waktu Tiba</div><div class="v">${(v.timing && v.timing.arrive) || "—"}</div></div>
+        <div class="id-cell"><div class="k">Mulai Interaksi</div><div class="v">${(v.timing && v.timing.startInteraction) || "—"}</div></div>
+        <div class="id-cell"><div class="k">Selesai Interaksi</div><div class="v">${(v.timing && v.timing.endInteraction) || "—"}</div></div>
+        <div class="id-cell"><div class="k">Waktu Berangkat</div><div class="v">${(v.timing && v.timing.depart) || "—"}</div></div>
+      </div>
+
       <div class="scorewrap">
         <div class="scorebig">
           <div class="num">${v.score.total.toFixed(1)}</div>

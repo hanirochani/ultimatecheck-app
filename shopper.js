@@ -11,6 +11,64 @@
   const evidenceStore = {}; // key -> dataURL
   const itemEvidenceStore = {}; // item key -> dataURL, for visual items answered "Tidak"
 
+  // ---- Waktu Kunjungan (visit timing) — tap-to-record checkpoints, editable ----
+  const TIMING_CHECKPOINTS = [
+    { key: "arrive", label: "Waktu Tiba" },
+    { key: "startInteraction", label: "Mulai Interaksi" },
+    { key: "endInteraction", label: "Selesai Interaksi" },
+    { key: "depart", label: "Waktu Berangkat" },
+  ];
+  const timingStore = {}; // key -> "HH:MM" string
+
+  function fmtTime(d) {
+    return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function buildTimingCard() {
+    const list = document.getElementById("timingList");
+    if (!list) return;
+    TIMING_CHECKPOINTS.forEach(cp => {
+      const row = document.createElement("div");
+      row.className = "timing-row";
+      row.innerHTML = `
+        <div class="timing-label">${cp.label}</div>
+        <div class="timing-action">
+          <button type="button" class="btn btn-ghost btn-sm" data-record="${cp.key}">Catat Waktu</button>
+          <span class="timing-recorded" data-recorded="${cp.key}" style="display:none;">
+            <span class="timing-time"></span>
+            <a href="#" class="timing-edit" data-edit="${cp.key}">ubah</a>
+          </span>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    list.querySelectorAll("[data-record]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.record;
+        const now = fmtTime(new Date());
+        timingStore[key] = now;
+        const recordedEl = list.querySelector(`[data-recorded="${key}"]`);
+        recordedEl.querySelector(".timing-time").textContent = "✓ " + now;
+        recordedEl.style.display = "inline-flex";
+        btn.style.display = "none";
+        markDirty();
+      });
+    });
+
+    list.querySelectorAll("[data-edit]").forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const key = link.dataset.edit;
+        delete timingStore[key];
+        const recordedEl = list.querySelector(`[data-recorded="${key}"]`);
+        recordedEl.style.display = "none";
+        const btn = list.querySelector(`[data-record="${key}"]`);
+        btn.style.display = "";
+      });
+    });
+  }
+
   function renderGroup(catKey, def, groupIndex) {
     const details = document.createElement("details");
     details.className = "fg";
@@ -223,6 +281,7 @@
   }
 
   buildChecklist();
+  buildTimingCard();
 
   document.getElementById("saveDraftBtn").addEventListener("click", () => {
     markDirty();
@@ -290,11 +349,19 @@
       evidence,
       itemEvidence,
       notes: { observation: document.getElementById("f_observation").value, qc: "" },
-      timing: { arrive: "—", startInteraction: "—", endInteraction: "—", depart: "—" },
+      timing: {
+        arrive: timingStore.arrive || "—",
+        startInteraction: timingStore.startInteraction || "—",
+        endInteraction: timingStore.endInteraction || "—",
+        depart: timingStore.depart || "—",
+      },
       score
     };
     UC.addVisit(visit);
-    UC.toast("Kunjungan dikirim untuk review QC");
+    const missingTiming = TIMING_CHECKPOINTS.filter(cp => !timingStore[cp.key]);
+    UC.toast(missingTiming.length
+      ? `Kunjungan dikirim untuk review QC · ${missingTiming.length} checkpoint waktu belum dicatat`
+      : "Kunjungan dikirim untuk review QC");
     setTimeout(() => { window.location.href = "qc.html?highlight=" + visit.id; }, 700);
   });
 

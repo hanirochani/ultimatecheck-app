@@ -16,6 +16,7 @@
     return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) + " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
   }
   function fmtGeo(geo) { return geo ? `${geo.lat}, ${geo.lng}` : "tidak tersedia"; }
+  function fmtCheckpoint(info) { return info ? `${fmtDateTime(info.time)} · ${fmtGeo(info.geo)}` : "—"; }
 
   /* ============================= HOME VIEW ============================= */
 
@@ -267,8 +268,12 @@
       <p class="page-sub">Dikirim ${fmtDateTime(s.submittedAt)}</p>
 
       <div class="id-card">
-        <div class="id-cell"><div class="k">Check-in</div><div class="v">${fmtDateTime(s.checkIn.time)} · ${fmtGeo(s.checkIn.geo)}</div></div>
-        <div class="id-cell"><div class="k">Check-out</div><div class="v">${fmtDateTime(s.checkOut.time)} · ${fmtGeo(s.checkOut.geo)}</div></div>
+        <div class="id-cell"><div class="k">Check-in</div><div class="v">${fmtCheckpoint(s.checkIn)}</div></div>
+        <div class="id-cell"><div class="k">Mulai Interaksi</div><div class="v">${fmtCheckpoint(s.startInteraction)}</div></div>
+        <div class="id-cell"><div class="k">Selesai Interaksi</div><div class="v">${fmtCheckpoint(s.endInteraction)}</div></div>
+        <div class="id-cell"><div class="k">Check-out</div><div class="v">${fmtCheckpoint(s.checkOut)}</div></div>
+      </div>
+      <div class="id-card" style="grid-template-columns:repeat(2,1fr);">
         <div class="id-cell"><div class="k">Skor</div><div class="v">${s.score ? s.score.correct + "/" + s.score.total + " · " + s.score.pct + "%" : "Menunggu key"}</div></div>
         <div class="id-cell"><div class="k">Status</div><div class="v">${s.score ? (s.score.pct === 100 ? "Sempurna" : "Belum sempurna") : "Pending"}</div></div>
       </div>

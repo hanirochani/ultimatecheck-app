@@ -13,6 +13,8 @@
   let currentTestId = null;
   let itemEvidenceStore = {};
   let checkInInfo = null;
+  let startInteractionInfo = null;
+  let endInteractionInfo = null;
 
   function fmtTime(d) {
     return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -24,6 +26,9 @@
   }
   function fmtGeo(geo) {
     return geo ? `${geo.lat}, ${geo.lng}` : "tidak tersedia";
+  }
+  function fmtCheckpoint(info) {
+    return info ? `${fmtTime(new Date(info.time))} · ${fmtGeo(info.geo)}` : "—";
   }
 
   /* ============================= LIST / DASHBOARD VIEW ============================= */
@@ -111,6 +116,8 @@
     currentTestId = testId;
     itemEvidenceStore = {};
     checkInInfo = null;
+    startInteractionInfo = null;
+    endInteractionInfo = null;
 
     host.innerHTML = `
       <button class="btn btn-ghost btn-sm" id="cancelBtn" style="margin-bottom:16px;">← Kembali</button>
@@ -125,11 +132,27 @@
             <span class="hint" id="checkInStatus">Belum check-in.</span>
           </div>
         </div>
+        <div class="field" style="margin-top:14px;">
+          <label class="q">Mulai Interaksi</label>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-ghost btn-sm" id="startInteractionBtn">Catat Waktu</button>
+            <span class="hint" id="startInteractionStatus">Belum dicatat. (Opsional)</span>
+          </div>
+        </div>
       </div>
 
       <form id="testForm" style="margin-top:16px; ${checkInInfo ? "" : "opacity:.5; pointer-events:none;"}" id="testFormWrap">
         <div id="checklistHost"></div>
         <div id="critAlert"></div>
+        <div class="card" style="margin-top:16px;">
+          <div class="field">
+            <label class="q">Selesai Interaksi</label>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-ghost btn-sm" id="endInteractionBtn">Catat Waktu</button>
+              <span class="hint" id="endInteractionStatus">Belum dicatat. (Opsional)</span>
+            </div>
+          </div>
+        </div>
         <div class="form-footer">
           <span class="hint" id="checkOutStatus">Belum check-out.</span>
           <div style="display:flex; gap:10px;">
@@ -155,6 +178,30 @@
       checkInBtn.textContent = "✓ Sudah Check-in";
       testForm.style.opacity = "1";
       testForm.style.pointerEvents = "auto";
+    });
+
+    const startInteractionBtn = document.getElementById("startInteractionBtn");
+    const startInteractionStatus = document.getElementById("startInteractionStatus");
+    startInteractionBtn.addEventListener("click", async () => {
+      startInteractionBtn.disabled = true;
+      startInteractionBtn.textContent = "Mengambil lokasi…";
+      const geo = await UC.captureGeo();
+      const now = new Date();
+      startInteractionInfo = { time: now.toISOString(), geo };
+      startInteractionStatus.textContent = `Mulai interaksi ${fmtTime(now)} · GPS ${fmtGeo(geo)}`;
+      startInteractionBtn.textContent = "✓ Tercatat";
+    });
+
+    const endInteractionBtn = document.getElementById("endInteractionBtn");
+    const endInteractionStatus = document.getElementById("endInteractionStatus");
+    endInteractionBtn.addEventListener("click", async () => {
+      endInteractionBtn.disabled = true;
+      endInteractionBtn.textContent = "Mengambil lokasi…";
+      const geo = await UC.captureGeo();
+      const now = new Date();
+      endInteractionInfo = { time: now.toISOString(), geo };
+      endInteractionStatus.textContent = `Selesai interaksi ${fmtTime(now)} · GPS ${fmtGeo(geo)}`;
+      endInteractionBtn.textContent = "✓ Tercatat";
     });
 
     buildChecklist();
@@ -200,6 +247,8 @@
         shopperName: session.name,
         answers,
         checkIn: checkInInfo,
+        startInteraction: startInteractionInfo,
+        endInteraction: endInteractionInfo,
         checkOut: checkOutInfo,
         submittedAt: new Date().toISOString()
       };
@@ -429,8 +478,12 @@
       <p class="page-sub">Dikirim ${fmtDateTime(s.submittedAt)}</p>
 
       <div class="id-card">
-        <div class="id-cell"><div class="k">Check-in</div><div class="v">${fmtTime(new Date(s.checkIn.time))} · ${fmtGeo(s.checkIn.geo)}</div></div>
-        <div class="id-cell"><div class="k">Check-out</div><div class="v">${fmtTime(new Date(s.checkOut.time))} · ${fmtGeo(s.checkOut.geo)}</div></div>
+        <div class="id-cell"><div class="k">Check-in</div><div class="v">${fmtCheckpoint(s.checkIn)}</div></div>
+        <div class="id-cell"><div class="k">Mulai Interaksi</div><div class="v">${fmtCheckpoint(s.startInteraction)}</div></div>
+        <div class="id-cell"><div class="k">Selesai Interaksi</div><div class="v">${fmtCheckpoint(s.endInteraction)}</div></div>
+        <div class="id-cell"><div class="k">Check-out</div><div class="v">${fmtCheckpoint(s.checkOut)}</div></div>
+      </div>
+      <div class="id-card" style="grid-template-columns:repeat(2,1fr);">
         <div class="id-cell"><div class="k">Skor</div><div class="v">${s.score ? s.score.correct + "/" + s.score.total + " · " + s.score.pct + "%" : "Menunggu key"}</div></div>
         <div class="id-cell"><div class="k">Status</div><div class="v">${s.score ? (s.score.pct === 100 ? "Sempurna" : "Belum sempurna") : "Pending"}</div></div>
       </div>

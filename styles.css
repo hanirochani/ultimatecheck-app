@@ -172,6 +172,20 @@ fieldset.fg legend{ display:none; }
 .item-evidence-req{ font-family:var(--font-mono); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--hazard); display:block; margin-bottom:2px; }
 .item-evidence.filled .item-evidence-req{ color:var(--good); }
 
+.timing-list{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.timing-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2);
+}
+.timing-row .timing-label{ font-size:13.6px; font-weight:600; }
+.timing-row .timing-recorded{ display:inline-flex; align-items:center; gap:10px; }
+.timing-row .timing-time{ font-family:var(--font-mono); font-weight:700; color:var(--green); font-size:13px; }
+.timing-row .timing-edit{
+  font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.03em;
+  color:var(--ink-faint); text-decoration:underline; cursor:pointer;
+}
+.timing-row .timing-edit:hover{ color:var(--green); }
+
 .crit-flag{
   display:flex; gap:10px; align-items:flex-start; background:var(--bad-bg); border:1px solid var(--bad-line); border-radius:9px;
   padding:12px 14px; font-size:13px; color:#7A2A20; margin:6px 0 0;
