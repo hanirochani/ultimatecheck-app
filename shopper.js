@@ -10,10 +10,8 @@
   const host = document.getElementById("checklistHost");
   const evidenceStore = {}; // key -> dataURL
   const itemEvidenceStore = {}; // item key -> dataURL, for visual items answered "Tidak"
-  let groupIndex = 0;
 
-  function renderGroup(catKey, def) {
-    groupIndex++;
+  function renderGroup(catKey, def, groupIndex) {
     const details = document.createElement("details");
     details.className = "fg";
     details.open = groupIndex <= 2;
@@ -22,7 +20,7 @@
     const head = document.createElement("summary");
     head.className = "fg-head";
     head.innerHTML = `
-      <div class="t"><span class="num">${groupIndex}</span><h3>${def.title}</h3></div>
+      <div class="t"><h3>${def.title}</h3></div>
       <span class="w">${def.kind === "recording" ? "wajib" : def.weight + "% bobot"}</span>
     `;
     details.appendChild(head);
@@ -221,7 +219,7 @@
   }
 
   function buildChecklist() {
-    Object.entries(UC.CHECKLIST).forEach(([key, def]) => renderGroup(key, def));
+    Object.entries(UC.CHECKLIST).forEach(([key, def], i) => renderGroup(key, def, i + 1));
   }
 
   buildChecklist();
