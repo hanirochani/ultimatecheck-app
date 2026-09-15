@@ -1,21 +1,11 @@
 (() => {
-  const gate = document.getElementById("gate");
+  const session = UC.requireSession("management", "mmp");
+  if (!session) return;
+
   const dashHost = document.getElementById("dashHost");
-  const gateBtn = document.getElementById("gateBtn");
-  const gatePass = document.getElementById("gatePass");
-  const gateError = document.getElementById("gateError");
-
-  function tryEnter() {
-    if (UC.tryMgmtLogin(gatePass.value)) {
-      showDashboard();
-    } else {
-      gateError.textContent = "Kata sandi salah. Coba lagi.";
-    }
-  }
-  gateBtn.addEventListener("click", tryEnter);
-  gatePass.addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
-
-  document.getElementById("topbarRight").querySelector(".logout").addEventListener("click", () => UC.mgmtLogout());
+  const userChip = document.getElementById("userChip");
+  if (userChip) userChip.textContent = session.name;
+  document.getElementById("logoutLink").addEventListener("click", (e) => { e.preventDefault(); UC.logout(); window.location.href = "index.html"; });
 
   function computeAggregates() {
     const visits = UC.getVisits();
@@ -90,12 +80,6 @@
     return `<span class="tier-chip bad">Kritis</span>`;
   }
 
-  function showDashboard() {
-    gate.style.display = "none";
-    dashHost.style.display = "block";
-    render();
-  }
-
   function render() {
     const d = computeAggregates();
 
@@ -125,6 +109,11 @@
     dashHost.innerHTML = `
       <h1 class="page-title">Management Dashboard</h1>
       <p class="page-sub">Ringkasan kumulatif seluruh laporan kunjungan yang telah difinalisasi QC. Data contoh untuk keperluan review desain — akan terhubung ke data produksi setelah tool ini disetujui.</p>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+        <a class="btn btn-ghost" href="assets/UltimateCheck-Site-Report-Sample.pdf" download>Unduh Laporan Site (PDF)</a>
+        <a class="btn btn-ghost" href="assets/UltimateCheck-Management-Dashboard-Sample.pdf" download>Unduh Laporan Management (PDF)</a>
+      </div>
 
       <div class="stat-strip">
         <div class="stat-tile"><div class="k">Laporan Final</div><div class="v">${d.finalized.length} <span>disetujui QC</span></div></div>
@@ -183,5 +172,5 @@
     `;
   }
 
-  if (UC.isMgmtUnlocked()) showDashboard();
+  render();
 })();

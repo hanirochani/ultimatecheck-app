@@ -16,24 +16,14 @@
       <div class="name">Ultimate<span>Check</span></div>
     </a>
     <div class="right" id="topbarRight">
-      <span class="role-chip">Management</span>
-      <a class="logout" href="index.html">Keluar</a>
+      <span class="role-chip" id="userChip">Management</span>
+      <a class="logout" href="index.html" id="logoutLink">Keluar</a>
     </div>
   </header>
 
-  <div id="gate" class="gate-wrap">
-    <div class="gate-card">
-      <div class="icon">M</div>
-      <h2>Akses Manajemen</h2>
-      <p>Dasbor ini hanya untuk manajemen PT. Aneka Petroindo Raya. Personil site/SPBU tidak memiliki akses.</p>
-      <input type="password" id="gatePass" placeholder="Kata sandi manajemen">
-      <div class="gate-error" id="gateError"></div>
-      <button class="btn btn-primary btn-block" id="gateBtn">Masuk</button>
-      <div class="gate-note">Prototipe: gerbang kata sandi tunggal untuk simulasi. Versi produksi akan menggunakan akun login individual per manajer.</div>
-    </div>
-  </div>
+  <div class="wrap" id="dashHost"></div>
 
-  <div class="wrap" id="dashHost" style="display:none;"></div>
+  <footer class="site-footer"><span>Powered by</span><img src="assets/elevare-logo.png" alt="Elevare"></footer>
 
 <script src="data.js"></script>
 <script src="dashboard.js"></script>

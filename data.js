@@ -7,12 +7,57 @@
 const UC = (() => {
 
   const STORE_KEY = "uc_visits_v1";
-  const MGMT_PASS_KEY = "uc_mgmt_ok";
-  const MGMT_PASSWORD = "APRmanajemen2026"; // prototype-only shared password gate
-  const SHOPPER_PASS_KEY = "uc_shopper_ok";
-  const SHOPPER_PASSWORD = "APRshopper2026"; // prototype-only shared password gate
-  const QC_PASS_KEY = "uc_qc_ok";
-  const QC_PASSWORD = "APRqc2026"; // prototype-only shared password gate
+  const SESSION_KEY = "uc_session_v1";
+
+  // ---- Individual user accounts (prototype-only; passwords stored in client code) ----
+  // Username pattern: shopper01..shopper25, quality01..quality05, management01..management05.
+  function pad2(n) { return String(n).padStart(2, "0"); }
+  const USERS = {};
+  for (let i = 1; i <= 25; i++) {
+    const id = "shopper" + pad2(i);
+    USERS[id] = { password: "APRshop" + pad2(i) + "#2026", role: "shopper", name: "Shopper " + pad2(i) };
+  }
+  for (let i = 1; i <= 5; i++) {
+    const id = "quality" + pad2(i);
+    USERS[id] = { password: "APRqc" + pad2(i) + "#2026", role: "qc", name: "QC Reviewer " + pad2(i) };
+  }
+  for (let i = 1; i <= 5; i++) {
+    const id = "management" + pad2(i);
+    USERS[id] = { password: "APRmgt" + pad2(i) + "#2026", role: "management", name: "Manajemen " + pad2(i) };
+  }
+
+  const ROLE_LABEL = { shopper: "Shopper", qc: "Quality Checker", management: "Management" };
+  const PROGRAM_LABEL = { training: "Training", mmp: "Mystery Motorist Program" };
+
+  function login(username, password, role, program) {
+    const u = USERS[username];
+    if (!u) return { ok: false, error: "Username tidak ditemukan." };
+    if (u.password !== password) return { ok: false, error: "Kata sandi salah." };
+    if (u.role !== role) return { ok: false, error: `Username ini terdaftar sebagai ${ROLE_LABEL[u.role]}, bukan ${ROLE_LABEL[role]}.` };
+    if (role === "management" && program === "training") return { ok: false, error: "Management tidak memiliki akses ke Training." };
+    const session = { username, role, program, name: u.name };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    return { ok: true, session };
+  }
+
+  function getSession() {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+  }
+
+  function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+  }
+
+  // Redirects to index.html if there is no valid session matching the required role/program.
+  // Returns the session object when valid (call this at the top of every protected page).
+  function requireSession(role, program) {
+    const s = getSession();
+    if (!s || s.role !== role || s.program !== program) {
+      window.location.href = "index.html";
+      return null;
+    }
+    return s;
+  }
 
   // Checklist definitions per SOW category, with weight + zero-tolerance flags.
   const CHECKLIST = {
@@ -94,6 +139,17 @@ const UC = (() => {
       ]
     }
   };
+
+  // ---- Question reference codes (matches the PDF Site Report's "Ref" column, e.g. "2a") ----
+  // Category order/number follows the SOW weighting sections 1-5; recording (category "0") is unlettered.
+  const REF_CAT_NUMBER = { bss: 1, cleanliness: 2, marketing: 3, grooming: 4, cx: 5 };
+  const ITEM_REF = {};
+  Object.entries(REF_CAT_NUMBER).forEach(([catKey, num]) => {
+    CHECKLIST[catKey].items.forEach((it, i) => {
+      ITEM_REF[it.key] = num + String.fromCharCode(97 + i); // 97 = 'a'
+    });
+  });
+  function refFor(itemKey) { return ITEM_REF[itemKey] || ""; }
 
   function xmlEscape(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -256,46 +312,105 @@ const UC = (() => {
     return seedVisits();
   }
 
-  function isMgmtUnlocked() {
-    return sessionStorage.getItem(MGMT_PASS_KEY) === "1";
+  /* ======================================================================
+     Training module — pre-deployment practice tests for shoppers.
+     Shoppers complete up to 5 tests using the same field-visit form (incl.
+     check-in/out + geo-tagged evidence). QC uploads the correct "answer
+     key" per test; sessions are auto-scored (% items matching the key)
+     once a key exists. Passing = at least 3 of 5 tests scored 100.
+     ====================================================================== */
+  const TRAINING_KEYS_KEY = "uc_training_keys_v1";
+  const TRAINING_SESSIONS_KEY = "uc_training_sessions_v1";
+  const TRAINING_TEST_IDS = ["test1", "test2", "test3", "test4", "test5"];
+  const TRAINING_PASS_MIN_PERFECT = 3;
+  const TRAINING_TOTAL_TESTS = 5;
+
+  // All yn + rating items across every category, in the same order as the Ref codes — this is what a
+  // training test scores against (the "recording" category is procedural only and isn't scored).
+  const TRAINING_SCORABLE_ITEMS = [];
+  ["bss", "cleanliness", "marketing", "grooming", "cx"].forEach(catKey => {
+    CHECKLIST[catKey].items.forEach(it => TRAINING_SCORABLE_ITEMS.push({ catKey, key: it.key, kind: CHECKLIST[catKey].kind }));
+  });
+
+  function getTrainingKeys() {
+    try { return JSON.parse(localStorage.getItem(TRAINING_KEYS_KEY)) || {}; } catch (e) { return {}; }
   }
-  function tryMgmtLogin(pass) {
-    if (pass === MGMT_PASSWORD) {
-      sessionStorage.setItem(MGMT_PASS_KEY, "1");
-      return true;
-    }
-    return false;
+  function getTrainingKey(testId) {
+    return getTrainingKeys()[testId] || null;
   }
-  function mgmtLogout() {
-    sessionStorage.removeItem(MGMT_PASS_KEY);
+  function saveTrainingKey(testId, answers, savedByName) {
+    const keys = getTrainingKeys();
+    keys[testId] = { answers, savedBy: savedByName, savedAt: new Date().toISOString() };
+    localStorage.setItem(TRAINING_KEYS_KEY, JSON.stringify(keys));
+    // Rescore any sessions already submitted for this test now that a key exists/changed.
+    const sessions = getTrainingSessions();
+    let changed = false;
+    sessions.forEach(s => {
+      if (s.testId === testId) { s.score = scoreAgainstKey(s.answers, answers); changed = true; }
+    });
+    if (changed) saveTrainingSessions(sessions);
+    return keys[testId];
   }
 
-  function isShopperUnlocked() {
-    return sessionStorage.getItem(SHOPPER_PASS_KEY) === "1";
-  }
-  function tryShopperLogin(pass) {
-    if (pass === SHOPPER_PASSWORD) {
-      sessionStorage.setItem(SHOPPER_PASS_KEY, "1");
-      return true;
-    }
-    return false;
-  }
-  function shopperLogout() {
-    sessionStorage.removeItem(SHOPPER_PASS_KEY);
+  function scoreAgainstKey(answers, keyAnswers) {
+    let correct = 0, total = 0;
+    TRAINING_SCORABLE_ITEMS.forEach(it => {
+      const key = keyAnswers[it.key];
+      if (key === undefined || key === null || key === "") return; // key not defined for this item — don't count it
+      total++;
+      if (String(answers[it.key]) === String(key)) correct++;
+    });
+    const pct = total ? Math.round((correct / total) * 1000) / 10 : 0;
+    return { correct, total, pct };
   }
 
-  function isQcUnlocked() {
-    return sessionStorage.getItem(QC_PASS_KEY) === "1";
+  function getTrainingSessions() {
+    try { return JSON.parse(localStorage.getItem(TRAINING_SESSIONS_KEY)) || []; } catch (e) { return []; }
   }
-  function tryQcLogin(pass) {
-    if (pass === QC_PASSWORD) {
-      sessionStorage.setItem(QC_PASS_KEY, "1");
-      return true;
-    }
-    return false;
+  function saveTrainingSessions(list) {
+    localStorage.setItem(TRAINING_SESSIONS_KEY, JSON.stringify(list));
   }
-  function qcLogout() {
-    sessionStorage.removeItem(QC_PASS_KEY);
+  function addTrainingSession(session) {
+    const key = getTrainingKey(session.testId);
+    session.score = key ? scoreAgainstKey(session.answers, key.answers) : null;
+    const list = getTrainingSessions();
+    list.unshift(session);
+    saveTrainingSessions(list);
+    return session;
+  }
+  function getTrainingSession(id) {
+    return getTrainingSessions().find(s => s.id === id) || null;
+  }
+  function getTrainingSessionsForShopper(username) {
+    return getTrainingSessions().filter(s => s.shopperUsername === username);
+  }
+  function getShopperTrainingSummary(username) {
+    const sessions = getTrainingSessionsForShopper(username).sort((a, b) => a.testId.localeCompare(b.testId));
+    const scored = sessions.filter(s => s.score);
+    const perfectCount = scored.filter(s => s.score.pct === 100).length;
+    const pass = perfectCount >= TRAINING_PASS_MIN_PERFECT;
+    return {
+      username, attempts: sessions.length, totalTests: TRAINING_TOTAL_TESTS,
+      perfectCount, needed: TRAINING_PASS_MIN_PERFECT, pass, sessions
+    };
+  }
+  function getAllShopperTrainingSummaries() {
+    return Object.keys(USERS)
+      .filter(u => USERS[u].role === "shopper")
+      .map(u => Object.assign({ name: USERS[u].name }, getShopperTrainingSummary(u)));
+  }
+
+  // Best-effort geolocation capture for training check-in/out + evidence; never blocks on permission issues.
+  function captureGeo() {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) return resolve(null);
+      const timer = setTimeout(() => resolve(null), 5000);
+      navigator.geolocation.getCurrentPosition(
+        pos => { clearTimeout(timer); resolve({ lat: Math.round(pos.coords.latitude * 1e5) / 1e5, lng: Math.round(pos.coords.longitude * 1e5) / 1e5 }); },
+        () => { clearTimeout(timer); resolve(null); },
+        { timeout: 4500, maximumAge: 60000 }
+      );
+    });
   }
 
   function toast(msg) {
@@ -313,12 +428,15 @@ const UC = (() => {
   }
 
   return {
-    CHECKLIST, EVIDENCE_SLOTS, MGMT_PASSWORD, SHOPPER_PASSWORD, QC_PASSWORD,
+    CHECKLIST, EVIDENCE_SLOTS,
+    USERS, ROLE_LABEL, PROGRAM_LABEL, login, getSession, logout, requireSession,
+    refFor,
     uid, scoreVisit, tierLabel,
     getVisits, saveVisits, addVisit, updateVisit, getVisit, resetDemoData,
-    isMgmtUnlocked, tryMgmtLogin, mgmtLogout,
-    isShopperUnlocked, tryShopperLogin, shopperLogout,
-    isQcUnlocked, tryQcLogin, qcLogout,
+    TRAINING_TEST_IDS, TRAINING_PASS_MIN_PERFECT, TRAINING_TOTAL_TESTS, TRAINING_SCORABLE_ITEMS,
+    getTrainingKey, saveTrainingKey, scoreAgainstKey,
+    getTrainingSessions, addTrainingSession, getTrainingSession, getTrainingSessionsForShopper,
+    getShopperTrainingSummary, getAllShopperTrainingSummaries, captureGeo,
     toast
   };
 })();

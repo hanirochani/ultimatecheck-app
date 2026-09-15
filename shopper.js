@@ -1,28 +1,11 @@
 (() => {
-  const gate = document.getElementById("gate");
-  const shopperHost = document.getElementById("shopperHost");
-  const gateBtn = document.getElementById("gateBtn");
-  const gatePass = document.getElementById("gatePass");
-  const gateError = document.getElementById("gateError");
+  const session = UC.requireSession("shopper", "mmp");
+  if (!session) return;
 
-  function tryEnter() {
-    if (UC.tryShopperLogin(gatePass.value)) {
-      gate.style.display = "none";
-      shopperHost.style.display = "block";
-    } else {
-      gateError.textContent = "Kata sandi salah. Coba lagi.";
-    }
-  }
-  gateBtn.addEventListener("click", tryEnter);
-  gatePass.addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
-
+  const userChip = document.getElementById("userChip");
+  if (userChip) userChip.textContent = session.name;
   const logoutLink = document.getElementById("logoutLink");
-  if (logoutLink) logoutLink.addEventListener("click", () => UC.shopperLogout());
-
-  if (UC.isShopperUnlocked()) {
-    gate.style.display = "none";
-    shopperHost.style.display = "block";
-  }
+  if (logoutLink) logoutLink.addEventListener("click", (e) => { e.preventDefault(); UC.logout(); window.location.href = "index.html"; });
 
   const host = document.getElementById("checklistHost");
   const evidenceStore = {}; // key -> dataURL
@@ -78,8 +61,10 @@
         <input type="file" accept="image/*" capture="environment" id="itemEviInput_${it.key}" data-key="${it.key}">
         <span class="item-evidence-hint"><span class="item-evidence-req">Wajib foto bukti</span>Lampirkan foto kondisi yang dimaksud karena jawaban "Tidak" pada kondisi fisik yang terlihat.</span>
       </div>` : "";
+    const ref = UC.refFor(it.key);
+    const refTag = ref ? `<span class="ref-tag">${ref}</span>` : "";
     wrap.innerHTML = `
-      <label class="q">${it.label}${critTag}</label>
+      <label class="q">${refTag}${it.label}${critTag}</label>
       <div class="seg">
         <input type="radio" class="opt-yes" name="${it.key}" id="${it.key}_y" value="yes">
         <label for="${it.key}_y">${isRecording ? "Selesai" : "Ya"}</label>
@@ -115,7 +100,9 @@
   function renderRating(catKey, it) {
     const wrap = document.createElement("div");
     wrap.className = "field";
-    wrap.innerHTML = `<label class="q">${it.label}</label>`;
+    const ref = UC.refFor(it.key);
+    const refTag = ref ? `<span class="ref-tag">${ref}</span>` : "";
+    wrap.innerHTML = `<label class="q">${refTag}${it.label}</label>`;
     const rating = document.createElement("div");
     rating.className = "rating";
     rating.dataset.key = it.key;

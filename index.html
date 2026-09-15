@@ -20,29 +20,48 @@
 
   <div class="portal-hero">
     <div class="eyebrow">Mystery Shopper Program · PT. Aneka Petroindo Raya</div>
-    <h1>Pilih Peran Anda</h1>
-    <p>Alat internal untuk pengisian form kunjungan, evidence, review QC, dan dasbor manajemen. Ini adalah prototipe fungsional dengan data contoh — belum terhubung ke sistem produksi.</p>
+    <h1>Masuk ke UltimateCheck</h1>
+    <p>Alat internal untuk pengisian form kunjungan, evidence, review QC, training shopper, dan dasbor manajemen. Ini adalah prototipe fungsional dengan data contoh — belum terhubung ke sistem produksi.</p>
   </div>
 
-  <div class="role-grid">
-    <a class="role-card" href="shopper.html">
-      <div class="icon">S</div>
-      <h3>Shopper</h3>
-      <p>Isi form kunjungan SPBU: checklist Basic Service Steps, kebersihan, marketing, grooming, dan unggah bukti foto/video secara offline-first.</p>
-      <div class="go">Buka Form Kunjungan (perlu kata sandi) →</div>
-    </a>
-    <a class="role-card" href="qc.html">
-      <div class="icon">Q</div>
-      <h3>QC Reviewer</h3>
-      <p>Tinjau laporan kunjungan yang masuk, verifikasi bukti, setujui atau kembalikan, lalu finalisasi untuk dikirim ke manajemen via email.</p>
-      <div class="go">Buka Antrean QC (perlu kata sandi) →</div>
-    </a>
-    <a class="role-card" href="dashboard.html">
-      <div class="icon">M</div>
-      <h3>Management</h3>
-      <p>Dasbor kumulatif seluruh site — skor jaringan, top &amp; bottom item, perbandingan klaster, dan status pengiriman laporan. Akses khusus manajemen.</p>
-      <div class="go">Buka Dasbor (perlu kata sandi) →</div>
-    </a>
+  <div class="gate-wrap" style="min-height:auto; padding:20px 20px 40px;">
+    <div class="login-card">
+      <div class="icon">U</div>
+      <h2>Login</h2>
+      <p class="lead">Masukkan program, peran, dan kredensial akun Anda.</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label class="q" for="f_program">Program</label>
+          <select id="f_program">
+            <option value="mmp">Mystery Motorist Program</option>
+            <option value="training">Training</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="q" for="f_role">Peran</label>
+          <select id="f_role">
+            <option value="shopper">Shopper</option>
+            <option value="qc">Quality Checker</option>
+            <option value="management">Management</option>
+          </select>
+        </div>
+        <div id="mgmtTrainingNote" class="login-note" style="display:none;">Management tidak memiliki akses ke Training.</div>
+        <div class="field">
+          <label class="q" for="f_username">Nama Pengguna</label>
+          <input type="text" id="f_username" autocomplete="username" placeholder="cth. shopper01">
+          <div class="login-hint">shopper01–shopper25 · quality01–quality05 · management01–management05</div>
+        </div>
+        <div class="field">
+          <label class="q" for="f_password">Kata Sandi</label>
+          <input type="password" id="f_password" autocomplete="current-password" placeholder="Kata sandi">
+        </div>
+        <div class="gate-error" id="loginError"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Masuk</button>
+      </form>
+
+      <div class="gate-note">Prototipe: akun login individual per pengguna (35 akun contoh). Data tersimpan lokal di perangkat/browser masing-masing.</div>
+    </div>
   </div>
 
   <div class="wrap narrow" style="padding-top:0;">
@@ -51,6 +70,9 @@
     </div>
   </div>
 
+  <footer class="site-footer"><span>Powered by</span><img src="assets/elevare-logo.png" alt="Elevare"></footer>
+
 <script src="data.js"></script>
+<script src="index.js"></script>
 </body>
 </html>

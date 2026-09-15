@@ -1,22 +1,12 @@
 (() => {
-  const gate = document.getElementById("gate");
+  const session = UC.requireSession("qc", "mmp");
+  if (!session) return;
+
   const qcHost = document.getElementById("qcHost");
-  const gateBtn = document.getElementById("gateBtn");
-  const gatePass = document.getElementById("gatePass");
-  const gateError = document.getElementById("gateError");
-
-  function tryEnter() {
-    if (UC.tryQcLogin(gatePass.value)) {
-      enterQc();
-    } else {
-      gateError.textContent = "Kata sandi salah. Coba lagi.";
-    }
-  }
-  gateBtn.addEventListener("click", tryEnter);
-  gatePass.addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
-
+  const userChip = document.getElementById("userChip");
+  if (userChip) userChip.textContent = session.name;
   const logoutLink = document.getElementById("logoutLink");
-  if (logoutLink) logoutLink.addEventListener("click", () => UC.qcLogout());
+  if (logoutLink) logoutLink.addEventListener("click", (e) => { e.preventDefault(); UC.logout(); window.location.href = "index.html"; });
 
   const listView = document.getElementById("listView");
   const detailView = document.getElementById("detailView");
@@ -88,7 +78,7 @@
             : `<br><span style="font-family:var(--font-mono); font-size:9.5px; color:var(--hazard); text-transform:uppercase;">tanpa foto</span>`;
         }
       }
-      return `<tr><td style="width:22px; color:var(--ink-faint); font-family:var(--font-mono);">${i + 1}</td><td>${it.label}${it.critical ? ' <span style="color:var(--bad); font-size:10px; font-family:var(--font-mono); text-transform:uppercase;">zero-tolerance</span>' : ""}</td><td style="width:70px; text-align:right;">${resultHtml}</td></tr>`;
+      return `<tr><td style="width:34px; color:var(--ink-faint); font-family:var(--font-mono); font-weight:700;">${UC.refFor(it.key)}</td><td>${it.label}${it.critical ? ' <span style="color:var(--bad); font-size:10px; font-family:var(--font-mono); text-transform:uppercase;">zero-tolerance</span>' : ""}</td><td style="width:70px; text-align:right;">${resultHtml}</td></tr>`;
     }).join("");
     return `<table class="list" style="margin-bottom:18px;"><thead><tr><th></th><th>${def.title}</th><th style="text-align:right;">Hasil</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
@@ -118,7 +108,10 @@
       .map(k => checklistTable(k, UC.CHECKLIST[k], v.answers, v.itemEvidence)).join("");
 
     detailView.innerHTML = `
-      <button class="btn btn-ghost btn-sm" id="backBtn" style="margin-bottom:16px;">← Kembali ke Antrean</button>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn btn-ghost btn-sm" id="backBtn">← Kembali ke Antrean</button>
+        <a class="btn btn-ghost btn-sm" href="assets/UltimateCheck-Site-Report-Sample.pdf" download>Unduh Laporan Site (PDF)</a>
+      </div>
       <h1 class="page-title">${v.site}</h1>
       <p class="page-sub">${v.location} · ${v.cluster}</p>
 
@@ -193,12 +186,6 @@
     }
   }
 
-  function enterQc() {
-    gate.style.display = "none";
-    qcHost.style.display = "block";
-    renderList();
-    if (openId) showDetail(openId);
-  }
-
-  if (UC.isQcUnlocked()) enterQc();
+  renderList();
+  if (openId) showDetail(openId);
 })();

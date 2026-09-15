@@ -17,24 +17,12 @@
     </a>
     <div class="right">
       <span class="offline-badge" id="offlineBadge"><span class="dot"></span> Tersimpan otomatis di perangkat</span>
-      <span class="role-chip">Shopper</span>
+      <span class="role-chip" id="userChip">Shopper</span>
       <a class="logout" href="index.html" id="logoutLink">Keluar</a>
     </div>
   </header>
 
-  <div id="gate" class="gate-wrap">
-    <div class="gate-card">
-      <div class="icon">S</div>
-      <h2>Akses Shopper</h2>
-      <p>Form kunjungan ini hanya untuk mystery shopper yang ditugaskan PT. Aneka Petroindo Raya. Personil site/SPBU tidak memiliki akses.</p>
-      <input type="password" id="gatePass" placeholder="Kata sandi shopper">
-      <div class="gate-error" id="gateError"></div>
-      <button class="btn btn-primary btn-block" id="gateBtn">Masuk</button>
-      <div class="gate-note">Prototipe: gerbang kata sandi tunggal untuk simulasi. Versi produksi akan menggunakan akun login individual per shopper.</div>
-    </div>
-  </div>
-
-  <div class="wrap narrow" id="shopperHost" style="display:none;">
+  <div class="wrap narrow" id="shopperHost">
     <h1 class="page-title">Form Kunjungan SPBU</h1>
     <p class="page-sub">Isi setiap bagian sesuai urutan kunjungan. Form dapat diisi offline — data tersimpan otomatis di perangkat dan akan tersinkron saat kembali online.</p>
 
@@ -91,6 +79,8 @@
       </div>
     </form>
   </div>
+
+  <footer class="site-footer"><span>Powered by</span><img src="assets/elevare-logo.png" alt="Elevare"></footer>
 
 <script src="data.js"></script>
 <script src="shopper.js"></script>

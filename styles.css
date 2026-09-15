@@ -273,6 +273,49 @@ table.list a.row-link{ text-decoration:none; color:inherit; display:block; }
 
 .empty{ text-align:center; padding:50px 20px; color:var(--ink-faint); }
 
+/* ---- Ref badge (question numbering matching PDF site report) ---- */
+.ref-tag{
+  font-family:var(--font-mono); font-size:10px; font-weight:700; color:var(--green);
+  background:var(--good-bg); padding:1px 6px; border-radius:5px; margin-right:6px; display:inline-block;
+}
+
+/* ---- Site footer (Elevare branding) ---- */
+.site-footer{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line); color:var(--ink-faint); font-family:var(--font-mono);
+  font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
+}
+.site-footer img{ height:16px; width:auto; opacity:.85; }
+
+/* ---- Login page ---- */
+.login-card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:36px 32px; max-width:420px; width:100%; }
+.login-card .icon{ width:52px; height:52px; border-radius:14px; background:var(--good-bg); color:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-family:var(--font-display); font-weight:800; font-size:22px; }
+.login-card h2{ margin:0 0 6px; font-size:19px; text-align:center; }
+.login-card p.lead{ color:var(--ink-soft); font-size:13.3px; margin:0 0 22px; text-align:center; }
+.login-card .field{ margin-bottom:14px; }
+.login-card label.q{ display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; }
+.login-card select, .login-card input{
+  width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:9px; font-size:14px; font-family:var(--font-body); background:#fff; color:var(--ink);
+}
+.login-hint{ font-size:11px; color:var(--ink-faint); margin-top:4px; }
+.login-note{ font-size:12px; color:var(--hazard); background:var(--hazard-bg); border:1px solid var(--hazard-line); border-radius:8px; padding:9px 11px; margin:2px 0 14px; }
+.gate-note{ margin-top:18px; font-size:11.3px; color:var(--ink-faint); background:var(--surface-2); border-radius:8px; padding:9px 11px; }
+
+/* ---- Training ---- */
+.test-grid{ display:flex; flex-direction:column; gap:10px; }
+.test-card{ border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; background:#fff; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.test-card .t{ font-family:var(--font-display); font-weight:800; font-size:16px; text-transform:uppercase; }
+.test-card .s{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+.pass-banner{ display:flex; align-items:center; gap:12px; border-radius:var(--radius); padding:16px 20px; margin-bottom:18px; }
+.pass-banner.pass{ background:var(--good-bg); border:1px solid var(--good-line); color:var(--good); }
+.pass-banner.fail{ background:var(--hazard-bg); border:1px solid var(--hazard-line); color:var(--hazard); }
+.pass-banner .big{ font-family:var(--font-display); font-weight:800; font-size:20px; text-transform:uppercase; }
+.score-pill{ font-family:var(--font-mono); font-weight:700; font-size:12px; padding:4px 11px; border-radius:999px; }
+.score-pill.perfect{ background:var(--good-bg); color:var(--good); border:1px solid var(--good-line); }
+.score-pill.partial{ background:var(--hazard-bg); color:var(--hazard); border:1px solid var(--hazard-line); }
+.score-pill.pending{ background:var(--surface-2); color:var(--ink-faint); border:1px solid var(--line); }
+
 @media (max-width:760px){
   .role-grid{ grid-template-columns:1fr; }
   .id-card{ grid-template-columns:repeat(2,1fr); }
